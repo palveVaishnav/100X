@@ -1,8 +1,12 @@
 // import { useState } from 'react'
 
 import {BrowserRouter,Routes, Route,useNavigate} from 'react-router-dom'
-import Landing from './components/Landing'
-import Dashboard from './components/Dashboard'
+// import Landing from './components/Landing'
+// import Dashboard from './components/Dashboard'
+import { lazy, Suspense } from 'react'
+
+const Landing = lazy(()=> import('./components/Landing'))
+const Dashboard = lazy(()=> import('./components/Dashboard'))
 
 function App() {
   return (
@@ -11,8 +15,16 @@ function App() {
         <BrowserRouter>
             <Topbar />
             <Routes>
-                <Route path="/" element={<Landing /> }></Route>
-                <Route path="dashboard" element={<Dashboard/>}></Route>
+                <Route path="/" element={
+                  <Suspense fallback={"Loding Landing......"}> 
+                    <Landing /> 
+                  </Suspense>}>
+                </Route>
+                <Route path="dashboard" element={
+                  <Suspense fallback={"Loading Dashboard ..."}>
+                    <Dashboard/>
+                  </Suspense>}>
+                </Route>
             </Routes>
         </BrowserRouter>
     </div>
