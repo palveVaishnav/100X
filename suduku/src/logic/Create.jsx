@@ -13,30 +13,30 @@ const Sudoku = () => {
     return x;
   };
 
-  const rowExist = (row, col) => {
+  const rowExist = (row, col, mat) => {
     for (let i = 0; i < 9; i++) {
-      if (matrix[row][i] === matrix[row][col] && i !== col) {
+      if (mat[row][i] === mat[row][col] && i !== col) {
         return true;
       }
     }
     return false;
   };
 
-  const colExist = (row, col) => {
+  const colExist = (row, col, mat) => {
     for (let i = 0; i < 9; i++) {
-      if (matrix[i][col] === matrix[row][col] && i !== row) {
+      if (mat[i][col] === mat[row][col] && i !== row) {
         return true;
       }
     }
     return false;
   };
 
-  const boxCheck = (row, col) => {
+  const boxCheck = (row, col, mat) => {
     const startRow = row - (row % 3);
     const startCol = col - (col % 3);
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        if (matrix[i + startRow][j + startCol] === matrix[row][col] &&
+        if (mat[i + startRow][j + startCol] === mat[row][col] &&
             (row !== i + startRow && col !== j + startCol)) {
           return true;
         }
@@ -45,56 +45,54 @@ const Sudoku = () => {
     return false;
   };
 
-  const enterNumber = (row, col) => {
+  const enterNumber = (row, col, mat) => {
     let x = getRandom();
     let attempts = 0;
     do {
-      setMatrix(prevMatrix => {
-        const newMatrix = [...prevMatrix];
-        newMatrix[row][col] = x;
-        return newMatrix;
-      });
+      mat[row][col] = x;
       setCount(prevCount => prevCount + 1);
       x = (x % 9) + 1;
       attempts++;
       if (attempts > 9) {
-        startAgain();
-        return;
+        return false;
       }
-    } while (rowExist(row, col) || colExist(row, col) || boxCheck(row, col));
+    } while (rowExist(row, col, mat) || colExist(row, col, mat) || boxCheck(row, col, mat));
+    return true;
   };
 
   const startAgain = () => {
-    setMatrix(Array(9).fill(0).map(() => Array(9).fill(0)));
+    let newMatrix = Array(9).fill(0).map(() => Array(9).fill(0));
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
-        enterNumber(i, j);
+        if (!enterNumber(i, j, newMatrix)) {
+          startAgain();
+          return;
+        }
       }
     }
+    setMatrix(newMatrix);
   };
 
   const makePuzzle = (level) => {
-    setPuzzle(prevPuzzle => {
-      const newPuzzle = [...prevPuzzle];
-      for (let k = 0; k < level; k++) {
-        let i = 0;
-        do {
-          const j = getRandom() - 1;
-          if (newPuzzle[i][j] !== 0) {
-            newPuzzle[i][j] = 0;
-            i++;
-          }
-        } while (i < 9);
-      }
-      return newPuzzle;
-    });
+    let newPuzzle = JSON.parse(JSON.stringify(matrix));
+    for (let k = 0; k < level; k++) {
+      let i = 0;
+      do {
+        const j = getRandom() - 1;
+        if (newPuzzle[i][j] !== 0) {
+          newPuzzle[i][j] = 0;
+          i++;
+        }
+      } while (i < 9);
+    }
+    setPuzzle(newPuzzle);
   };
 
   const copyPuzzle = () => {
     let valid = true;
     setPuzzle(matrix.map((row, i) =>
       row.map((val, j) => {
-        if (rowExist(i, j) || colExist(i, j) || boxCheck(i, j)) {
+        if (rowExist(i, j, matrix) || colExist(i, j, matrix) || boxCheck(i, j, matrix)) {
           valid = false;
         }
         return val;
@@ -108,53 +106,56 @@ const Sudoku = () => {
   }, []);
 
   const printMatrix = (x) => (
-    <div>
-      {x.map((row, i) => (
-        <div key={i}>
-          {row.map((val, j) => (
-            <span key={j}> {val} </span>
-          ))}
-        </div>
-      ))}
-    </div>
+    <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', margin: 'auto' }}>
+      <tbody>
+        {x.map((row, i) => (
+          <tr key={i}>
+            {row.map((val, j) => (
+              <td key={j} style={{ textAlign: 'center', width: '30px', height: '30px' }}>
+                {val}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 
   const printPuzzle = () => (
-    <div>
-      {puzzle.map((row, i) => (
-        <div key={i}>
-          {row.map((val, j) => (
-            <span key={j}> {val === 0 ? ' ' : val} </span>
-          ))}
-        </div>
-      ))}
-    </div>
+    <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', margin: 'auto' }}>
+      <tbody>
+        {puzzle.map((row, i) => (
+          <tr key={i}>
+            {row.map((val, j) => (
+              <td key={j} style={{ textAlign: 'center', width: '30px', height: '30px' }}>
+                {val === 0 ? ' ' : val}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
-
   const handleLevelChange = (e) => {
     const level = parseInt(e.target.value, 10);
     makePuzzle(level);
   };
 
   return (
-    <div>
-      <h1>Sudoku Generator</h1>
-      <div>
-        <h2>Matrix</h2>
-        {printMatrix(matrix)}
-      </div>
-      <div>
-        <h2>Puzzle</h2>
-        {printPuzzle()}
-      </div>
+    <div style={{display:'grid',placeItems:'center'}}>
+      <h1>Sudoku Generator</h1>       
       <div>
         <label>
           Level:
           <input type="number" onChange={handleLevelChange} />
         </label>
+      </div>    
+      <div>  
+        <h2>Puzzle</h2>
+        {printPuzzle()}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default Sudoku;
