@@ -3,8 +3,8 @@ import { useRecoilState, useSetRecoilState } from 'recoil';
 import { Count, Matrix, Puzzle } from '../store/atoms/matrices';
 
 export default function Sudoku() {
-    const [matrix,setMatrix] = useRecoilState(Matrix);
-    const [puzzle,setPuzzle] = useRecoilState(Puzzle);
+    const [matrix, setMatrix] = useRecoilState(Matrix);
+    const [puzzle, setPuzzle] = useRecoilState(Puzzle);
     const setCount = useSetRecoilState(Count)
     const getRandom = () => {
         let x;
@@ -128,8 +128,31 @@ export default function Sudoku() {
                 {puzzle.map((row, i) => (
                     <tr key={i}>
                         {row.map((val, j) => (
+                            // <td key={j} style={{ textAlign: 'center', width: '30px', height: '30px' }}>
+                            //     {val === 0 ? ' ' : val}
+                            // </td>
                             <td key={j} style={{ textAlign: 'center', width: '30px', height: '30px' }}>
-                                {val === 0 ? ' ' : val}
+                                {val === 0 ? (
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="9"
+                                        // value={puzzle[i][j]}
+                                        onChange={(e) => {
+                                            if(e.target.value < 9){
+                                                const newPuzzle = puzzle.map((r, rowIndex) =>
+                                                    r.map((cell, colIndex) =>
+                                                        rowIndex === i && colIndex === j ? Number(e.target.value) : cell
+                                                    )
+                                                );
+                                                setPuzzle(newPuzzle);
+                                            }
+                                        }}
+                                        style={{ width: '100%', height: '100%', textAlign: 'center' }}
+                                    />
+                                ) : (
+                                    val
+                                )}
                             </td>
                         ))}
                     </tr>
@@ -141,21 +164,21 @@ export default function Sudoku() {
         const level = parseInt(e.target.value, 10);
         makePuzzle(level);
     };
-    
-    return (        
-            <div style={{ display: 'grid', placeItems: 'center' }}>
-                <h1>Sudoku Generator</h1>
-                <div>
-                    <label>
-                        Level:
-                        <input type="number" onChange={handleLevelChange} />
-                    </label>
-                </div>
-                <div>
-                    <h2>Puzzle</h2>
-                    {printPuzzle()}
-                </div>
+
+    return (
+        <div style={{ display: 'grid', placeItems: 'center' }}>
+            <h1>Sudoku Generator</h1>
+            <div>
+                <label>
+                    Level:
+                    <input type="number" onChange={handleLevelChange} />
+                </label>
             </div>
+            <div>
+                <h2>Puzzle</h2>
+                {printPuzzle()}
+            </div>
+        </div>
     )
 }
 
