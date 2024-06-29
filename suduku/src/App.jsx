@@ -1,11 +1,17 @@
 
 import './App.css'
 import Sudoku from './logic/Create'
-
+import {RecoilRoot} from 'recoil'
+import Solve from './logic/Solve'
 function App() {
   return (
     <div>
-        <Sudoku />
+      <RecoilRoot>
+        <div style={{display:'grid',placeItems:'center'}}>        
+          <Sudoku />
+          <Solve />
+        </div>
+      </RecoilRoot>
     </div>
   )
 }
